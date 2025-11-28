@@ -1,0 +1,6 @@
+{
+  "description": "Template used by Alpaca-LoRA.",
+  "prompt_input": "以下是一条描述任务的指令，同时搭配了能提供更多背景信息的输入。\n\n### 指令:\n{instruction}\n\n### 输入:\n{input}\n\n### 回复:",
+  "prompt_no_input": "以下是一条描述任务的指令。\n\n### 指令:\n{instruction}\n\n### 回复:",
+  "response_split": "### 回复:"
+}
