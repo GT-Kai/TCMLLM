@@ -62,3 +62,4 @@ datas/*
 BaseModels/chatglm-6b/*
 output/*
 wandb/*
+BaseModels/__pycache__/server.cpython-310.pyc

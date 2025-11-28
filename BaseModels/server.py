@@ -7,9 +7,10 @@ from pydantic import BaseModel
 from transformers import AutoConfig, AutoModel, AutoTokenizer
 
 # ===== 配置区域 =====
-BASE_MODEL_PATH = "./../../chatglm-6b"        # 原始 ChatGLM-6B 模型目录
-CHECKPOINT_PATH = "./../../../output/chatglm-6b-pt-128-2e-2/checkpoint-3000"    # 你的 P-Tuning v2 微调权重目录
+BASE_MODEL_PATH = "./chatglm-6b"        # 原始 ChatGLM-6B 模型目录
+CHECKPOINT_PATH = "./../output/chatglm-6b-pt-128-2e-2/checkpoint-3000"    # 你的 P-Tuning v2 微调权重目录
 PRE_SEQ_LEN = 128                       # 你训练时用的 pre_seq_len，一定要对上
+DEVICE = "cuda:1"                       # GPU 设备号
 
 # ===== 加载模型 =====
 print(">>> Loading config...")
@@ -49,8 +50,8 @@ model.transformer.prefix_encoder.load_state_dict(new_prefix_state_dict)
 print(">>> Prefix encoder loaded.")
 
 # 设备与精度设置
-device = "cuda" if torch.cuda.is_available() else "cpu"
-if device == "cuda":
+device = DEVICE if torch.cuda.is_available() else "cpu"
+if device == DEVICE:
     model = model.half().to(device)
 else:
     model = model.float().to(device)
