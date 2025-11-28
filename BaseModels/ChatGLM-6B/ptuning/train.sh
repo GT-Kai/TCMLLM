@@ -2,7 +2,23 @@ PRE_SEQ_LEN=128 # 256
 LR=2e-2
 
 # bash BaseModels/ChatGLM-6B/ptuning/train.sh
-
+# 在 P-tuning v2 训练时模型只保存 PrefixEncoder 部分的参数：
+# - 模型参数：
+#   - 基础模型BaseModels/chatglm-6b的权重会被微调
+#   - P-Tuning特有的前缀嵌入（prefix embeddings），其长度由$PRE_SEQ_LEN决定
+# - 训练配置：
+#   - 最大训练步数：3000步
+#   - 学习率：由$LR变量指定
+#   - 使用混合精度训练（--fp16参数）
+# - 输出相关：
+#   - 模型检查点会保存在output/chatglm-6b-pt-$PRE_SEQ_LEN-$LR/目录下
+#   - 每1000步保存一次检查点
+#   - 每10步输出一次训练日志
+# - 数据处理：
+#   - 会从训练集和验证集文件创建缓存
+#   - 根据指定的prompt_column和response_column处理数据
+#=================================================================#
+#=================================================================#
     # --model_name_or_path THUDM/chatglm-6b \
     # --model_name_or_path BaseModels/chatglm-6b \
 
