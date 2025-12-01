@@ -2,6 +2,6 @@ swanlab
 modelscope==1.22.0
 transformers>=4.50.0
 datasets==4.4.1
-accelerate==0.20.1
+accelerate==1.12.0
 pandas==2.3.3
 addict
