@@ -12,3 +12,4 @@ BaseModels/._____temp/Qwen/Qwen3-8B/*
 BaseModels/Qwen/Qwen3-8B/*
 models/ChatGLM6B/templates/*
 models/ChatGLM6B/utils/__pycache__/*
+train/*.jsonl
