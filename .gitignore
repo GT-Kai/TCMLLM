@@ -58,8 +58,10 @@ wandb/run-20251128_201046-iyz6xcbo/files/wandb-metadata.json
 wandb/run-20251128_201046-iyz6xcbo/files/wandb-summary.json
 wandb/run-20251128_201046-iyz6xcbo/logs/debug-internal.log
 wandb/run-20251128_201046-iyz6xcbo/logs/debug.log
-datas/*
+
 BaseModels/chatglm-6b/*
 output/*
 wandb/*
 BaseModels/__pycache__/server.cpython-310.pyc
+datas/delicate_medical_r1_data/*
+datas/ShenNong_TCM_Dataset/*
