@@ -72,16 +72,22 @@ def process_func(example):
 
 def predict(messages, model, tokenizer):
     device = "cuda"
-    text = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True
-    )
+
+    # 使用与训练时相同的格式化方式
+    system_content = messages[0]['content']
+    user_content = messages[1]['content']
+
+    text = f"<|im_start|>system\n{system_content}<|im_end|>\n<|im_start|>user\n{user_content}<|im_end|>\n<|im_start|>assistant\n"
+
     model_inputs = tokenizer([text], return_tensors="pt").to(device)
 
     generated_ids = model.generate(
         **model_inputs,
         max_new_tokens=MAX_LENGTH,
+        do_sample=True,
+        temperature=0.7,
+        top_p=0.9,
+        pad_token_id=tokenizer.eos_token_id,
     )
     generated_ids = [
         output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
