@@ -8,6 +8,8 @@ from peft import LoraConfig, TaskType, get_peft_model
 import os
 import swanlab
 
+os.environ["NCCL_P2P_DISABLE"] = "1"
+os.environ["NCCL_IB_DISABLE"] = "1"
 os.environ["SWANLAB_PROJECT"]="qwen3-sft-medical"
 PROMPT = "你是一个医学专家，你需要根据用户的问题，给出带有思考的回答。"
 MAX_LENGTH = 2048
@@ -90,11 +92,19 @@ def predict(messages, model, tokenizer):
     return response
 
 # 在modelscope上下载Qwen模型到本地目录下
-model_dir = snapshot_download("Qwen/Qwen3-1.7B", cache_dir="./", revision="master")
+model_dir = snapshot_download(
+    "Qwen/Qwen3-1.7B", 
+    cache_dir="/home/lick/project/pro_TCMLLM/BaseModels/", 
+    revision="master",
+)
 
+# # Transformers加载模型权重
+# tokenizer = AutoTokenizer.from_pretrained("./Qwen/Qwen3-1.7B", use_fast=False, trust_remote_code=True)
+# model = AutoModelForCausalLM.from_pretrained("./Qwen/Qwen3-1.7B", device_map="auto", torch_dtype=torch.bfloat16)
+# model.enable_input_require_grads()  # 开启梯度检查点时，要执行该方法
 # Transformers加载模型权重
-tokenizer = AutoTokenizer.from_pretrained("./Qwen/Qwen3-1.7B", use_fast=False, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained("./Qwen/Qwen3-1.7B", device_map="auto", torch_dtype=torch.bfloat16)
+tokenizer = AutoTokenizer.from_pretrained("/home/lick/project/pro_TCMLLM/BaseModels/Qwen/Qwen3-1.7B", use_fast=False, trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained("/home/lick/project/pro_TCMLLM/BaseModels/Qwen/Qwen3-1.7B", device_map="auto", torch_dtype=torch.bfloat16)
 model.enable_input_require_grads()  # 开启梯度检查点时，要执行该方法
 
 # 配置lora
@@ -110,11 +120,17 @@ config = LoraConfig(
 model = get_peft_model(model, config)
 
 # 加载、处理数据集和测试集
-train_dataset_path = "train.jsonl"
-test_dataset_path = "val.jsonl"
+# train_dataset_path = "train.jsonl"
+# test_dataset_path = "val.jsonl"
 
-train_jsonl_new_path = "train_format.jsonl"
-test_jsonl_new_path = "val_format.jsonl"
+# train_jsonl_new_path = "train_format.jsonl"
+# test_jsonl_new_path = "val_format.jsonl"
+train_dataset_path = "/home/lick/project/pro_TCMLLM/datas/delicate_medical_r1_data/train.jsonl"
+test_dataset_path = "/home/lick/project/pro_TCMLLM/datas/delicate_medical_r1_data/val.jsonl"
+
+train_jsonl_new_path = "/home/lick/project/pro_TCMLLM/datas/delicate_medical_r1_data/train_format.jsonl"
+test_jsonl_new_path = "/home/lick/project/pro_TCMLLM/datas/delicate_medical_r1_data/val_format.jsonl"
+
 
 if not os.path.exists(train_jsonl_new_path):
     dataset_jsonl_transfer(train_dataset_path, train_jsonl_new_path)
@@ -132,7 +148,7 @@ eval_ds = Dataset.from_pandas(eval_df)
 eval_dataset = eval_ds.map(process_func, remove_columns=eval_ds.column_names)
 
 args = TrainingArguments(
-    output_dir="./output/Qwen3-1.7B",
+    output_dir="/home/lick/project/pro_TCMLLM/output/Qwen3-1.7B",
     per_device_train_batch_size=1,
     per_device_eval_batch_size=1,
     gradient_accumulation_steps=4,

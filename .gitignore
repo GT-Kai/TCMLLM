@@ -13,3 +13,5 @@ BaseModels/Qwen/Qwen3-8B/*
 models/ChatGLM6B/templates/*
 models/ChatGLM6B/utils/__pycache__/*
 train/*.jsonl
+
+models/Qwen3-Medical-SFT/*
