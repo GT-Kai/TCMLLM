@@ -77,22 +77,28 @@ def predict(messages, model, tokenizer):
     system_content = messages[0]['content']
     user_content = messages[1]['content']
 
-    text = f"<|im_start|>system\n{system_content}<|im_end|>\n<|im_start|>user\n{user_content}<|im_end|>\n<|im_start|>assistant\n<think>"
+    text = f"<|im_start|>system\n{system_content}<|im_end|>\n<|im_start|>user\n{user_content}<|im_end|>\n<|im_start|>assistant\n"
 
     model_inputs = tokenizer([text], return_tensors="pt").to(device)
 
     # PEFT模型的generate方法需要特殊处理
     generation_config = {
-        "max_new_tokens": MAX_LENGTH,
-        "do_sample": False,  # 先用greedy decoding试试
-        "repetition_penalty": 1.1,  # 防止重复
-        "pad_token_id": tokenizer.pad_token_id,  # 使用正确的pad_token_id
+        "max_new_tokens": 256,  # 大幅降低生成长度
+        "do_sample": False,  # 使用贪婪解码，避免随机性问题
+        "repetition_penalty": 1.5,  # 大幅增加重复惩罚
+        "no_repeat_ngram_size": 4,  # 防止4-gram重复
+        "pad_token_id": tokenizer.pad_token_id,
         "eos_token_id": tokenizer.eos_token_id,
     }
 
+    # 确保attention_mask存在
+    attention_mask = model_inputs.get('attention_mask')
+    if attention_mask is None:
+        attention_mask = torch.ones_like(model_inputs.input_ids)
+
     generated_ids = model.generate(
         input_ids=model_inputs.input_ids,
-        attention_mask=model_inputs.get('attention_mask'),  # 安全获取attention_mask
+        attention_mask=attention_mask,
         **generation_config
     )
     generated_ids = [
@@ -124,9 +130,9 @@ config = LoraConfig(
     task_type=TaskType.CAUSAL_LM,
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
     inference_mode=False,  # 训练模式
-    r=8,  # Lora 秩
-    lora_alpha=32,  # Lora alaph，具体作用参见 Lora 原理
-    lora_dropout=0.1,  # Dropout 比例
+    r=16,  # 增加Lora秩，从8提高到16
+    lora_alpha=64,  # 相应增加alpha
+    lora_dropout=0.05,  # 降低dropout
 )
 
 model = get_peft_model(model, config)
@@ -167,7 +173,7 @@ args = TrainingArguments(
     eval_strategy="steps",
     eval_steps=100,
     logging_steps=10,
-    num_train_epochs=2,
+    num_train_epochs=3,
     save_steps=400,
     learning_rate=1e-4,
     save_on_each_node=True,
@@ -186,8 +192,10 @@ trainer = Trainer(
 
 trainer.train()
 
-# 合并LoRA权重以进行推理
+# 合并LoRA权重并保存最终模型
 model = model.merge_and_unload()
+model.save_pretrained("/home/lick/project/pro_TCMLLM/output/Qwen3-1.7B/final_model")
+tokenizer.save_pretrained("/home/lick/project/pro_TCMLLM/output/Qwen3-1.7B/final_model")
 
 # 用测试集的前3条，主观看模型
 test_df = pd.read_json(test_jsonl_new_path, lines=True)[:3]
