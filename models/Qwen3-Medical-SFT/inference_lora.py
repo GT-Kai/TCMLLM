@@ -28,13 +28,14 @@ def predict(messages, model, tokenizer):
 
     return response
 
+# # 修改前：使用旧的base model + LoRA
+# tokenizer = AutoTokenizer.from_pretrained("/home/lick/project/pro_TCMLLM/BaseModels/Qwen/Qwen3-1.7B", ...)
+# model = AutoModelForCausalLM.from_pretrained("/home/lick/project/pro_TCMLLM/BaseModels/Qwen/Qwen3-1.7B", ...)
+# model = PeftModel.from_pretrained(model, model_id="/home/lick/project/pro_TCMLLM/output/Qwen3-1.7B/checkpoint-1084")
 
-# 加载原下载路径的tokenizer和model
-tokenizer = AutoTokenizer.from_pretrained("/home/lick/project/pro_TCMLLM/BaseModels/Qwen/Qwen3-1.7B", use_fast=False, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained("/home/lick/project/pro_TCMLLM/BaseModels/Qwen/Qwen3-1.7B", device_map="auto", torch_dtype=torch.bfloat16)
-
-# 加载lora模型
-model = PeftModel.from_pretrained(model, model_id="/home/lick/project/pro_TCMLLM/output/Qwen3-1.7B/checkpoint-1084")
+# 加载重新训练后的完整模型（已合并LoRA权重）
+tokenizer = AutoTokenizer.from_pretrained("/home/lick/project/pro_TCMLLM/output/Qwen3-1.7B/final_model", use_fast=False, trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained("/home/lick/project/pro_TCMLLM/output/Qwen3-1.7B/final_model", device_map="auto", torch_dtype=torch.bfloat16)
 
 test_texts = {
     'instruction': "你是一个医学专家，你需要根据用户的问题，给出带有思考的回答。",
