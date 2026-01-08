@@ -77,17 +77,23 @@ def predict(messages, model, tokenizer):
     system_content = messages[0]['content']
     user_content = messages[1]['content']
 
-    text = f"<|im_start|>system\n{system_content}<|im_end|>\n<|im_start|>user\n{user_content}<|im_end|>\n<|im_start|>assistant\n"
+    text = f"<|im_start|>system\n{system_content}<|im_end|>\n<|im_start|>user\n{user_content}<|im_end|>\n<|im_start|>assistant\n<think>"
 
     model_inputs = tokenizer([text], return_tensors="pt").to(device)
 
+    # PEFT模型的generate方法需要特殊处理
+    generation_config = {
+        "max_new_tokens": MAX_LENGTH,
+        "do_sample": False,  # 先用greedy decoding试试
+        "repetition_penalty": 1.1,  # 防止重复
+        "pad_token_id": tokenizer.pad_token_id,  # 使用正确的pad_token_id
+        "eos_token_id": tokenizer.eos_token_id,
+    }
+
     generated_ids = model.generate(
-        **model_inputs,
-        max_new_tokens=MAX_LENGTH,
-        do_sample=True,
-        temperature=0.7,
-        top_p=0.9,
-        pad_token_id=tokenizer.eos_token_id,
+        input_ids=model_inputs.input_ids,
+        attention_mask=model_inputs.get('attention_mask'),  # 安全获取attention_mask
+        **generation_config
     )
     generated_ids = [
         output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
@@ -179,6 +185,9 @@ trainer = Trainer(
 )
 
 trainer.train()
+
+# 合并LoRA权重以进行推理
+model = model.merge_and_unload()
 
 # 用测试集的前3条，主观看模型
 test_df = pd.read_json(test_jsonl_new_path, lines=True)[:3]

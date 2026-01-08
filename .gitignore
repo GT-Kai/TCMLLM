@@ -14,4 +14,6 @@ models/ChatGLM6B/templates/*
 models/ChatGLM6B/utils/__pycache__/*
 train/*.jsonl
 
-models/Qwen3-Medical-SFT/*
+models/Qwen3-Medical-SFT/*.jsonl
+models/Qwen3-Medical-SFT/output/*
+models/Qwen3-Medical-SFT/swanlog/*
